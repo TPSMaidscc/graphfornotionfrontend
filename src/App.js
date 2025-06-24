@@ -10,207 +10,215 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
+
 // ===== CONFIGURATION =====
 const SERVER_URL = 'https://backendfornotiongraph.vercel.app'; // Your Vercel backend
 
-// Enhanced Custom node component optimized for wide spacing and deep structures
+
+// Enhanced Custom node component with fixed dimensions from backend
 const CustomNode = ({ data, isConnectable }) => {
+  const [isExpanded, setIsExpanded] = React.useState(false);
+ 
   const getNodeIcon = (nodeType) => {
-    switch (nodeType) {
-      default: return '';
-    }
+    // Removed emoji icons as requested
+    return '';
   };
 
   const getNodeStyle = (nodeType, depth = 0) => {
-    // Base styles with depth-aware adjustments
+    // Use backend dimensions if available, otherwise use defaults
+    const width = 200;
+    const height = 100;
+    
+    // Enhanced base styles with fixed dimensions
     const baseStyle = {
       border: 'none',
-      borderRadius: '12px',
+      borderRadius: '16px',
       fontWeight: '600',
       textAlign: 'center',
       position: 'relative',
       cursor: 'default',
       wordWrap: 'break-word',
       whiteSpace: 'normal',
-      lineHeight: '1.4'
+      lineHeight: '1.4',
+      transition: 'all 0.3s ease',
+      backdropFilter: 'blur(8px)',
+      width: `${width}px`,
+      height: `${height}px`,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '10px'
     };
 
-    // Adjust sizes based on depth for better hierarchy visualization
-    const depthScale = Math.max(0.8, 1 - (depth * 0.05)); // Slightly smaller for deeper nodes
-    const basePadding = 18;
-    const scaledPadding = Math.max(12, basePadding * depthScale);
-
+    // Enhanced depth scaling with better visual hierarchy
+    const depthScale = Math.max(0.75, 1 - (depth * 0.04));
+    
+    // Add depth-based shadow intensity
+    const shadowIntensity = Math.max(0.2, 0.5 - (depth * 0.05));
+   
     switch (nodeType) {
       case 'businessTool':
         return {
           ...baseStyle,
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          fontSize: `${16 * depthScale}px`,
+          background: '#27a567', // Solid green background
+          fontSize: `${Math.max(12, 17 * depthScale)}px`,
           fontWeight: '700',
-      //    padding: `${scaledPadding + 4}px ${scaledPadding + 8}px`,
-          minWidth: `${100 * depthScale}px`,
-          maxWidth: `${400 * depthScale}px`,
-        //  boxShadow: '0 10px 30px rgba(102, 126, 234, 0.4)',
+          boxShadow: `0 12px 35px rgba(102, 126, 234, ${shadowIntensity})`,
           color: 'white',
-          transform: `scale(${Math.max(0.9, depthScale + 0.1)})` // Slightly larger for root
+          border: '3px solid rgba(0, 0, 0, 0.1)'
         };
       case 'businessECP':
         return {
           ...baseStyle,
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          fontSize: `${16 * depthScale}px`,
+          background: '#27a567', // Solid green background
+          fontSize: `${Math.max(12, 17 * depthScale)}px`,
           fontWeight: '700',
-        //  padding: `${scaledPadding + 4}px ${scaledPadding + 8}px`,
-          minWidth: `${100 * depthScale}px`,
-          maxWidth: `${400 * depthScale}px`,
-       //   boxShadow: '0 10px 30px rgba(102, 126, 234, 0.4)',
+          boxShadow: `0 12px 35px rgba(102, 126, 234, ${shadowIntensity})`,
           color: 'white',
-          transform: `scale(${Math.max(0.9, depthScale + 0.1)})` // Slightly larger for root
+          border: '3px solid rgba(0, 0, 0, 0.1)'
         };
       case 'condition':
         return {
           ...baseStyle,
-          background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
-          fontSize: `${14 * depthScale}px`,
-      //    padding: `${scaledPadding}px ${scaledPadding + 4}px`,
-          minWidth: `${60 * depthScale}px`,
-          maxWidth: `${320 * depthScale}px`,
-       //   boxShadow: '0 8px 25px rgba(246, 173, 85, 0.35)',
-          color: '#8b4513',
-          transform: `scale(${depthScale})`
+          background: '#4878bc', // Darker blue background for conditions
+          fontSize: `${Math.max(12, 15 * depthScale)}px`,
+          boxShadow: `0 10px 28px rgba(30, 58, 138, ${shadowIntensity})`,
+          color: 'white',
+          border: '2px solid rgba(255, 255, 255, 0.2)'
         };
       case 'event':
         return {
           ...baseStyle,
-          background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-          fontSize: `${14 * depthScale}px`,
-        //  padding: `${scaledPadding}px ${scaledPadding + 4}px`,
-          minWidth: `${60 * depthScale}px`,
-          maxWidth: `${320 * depthScale}px`,
-      //    boxShadow: '0 8px 25px rgba(79, 209, 199, 0.35)',
-          color: '#2d3748',
-          transform: `scale(${depthScale})`
+          background: '#fed7aa', // Light orange background for events
+          fontSize: `${Math.max(12, 15 * depthScale)}px`,
+          boxShadow: `0 10px 28px rgba(0, 0, 0, 0.15)`,
+          color: 'black',
+          border: '2px solid rgba(0, 0, 0, 0.2)'
         };
       case 'policy':
         return {
           ...baseStyle,
-          background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-          fontSize: `${14 * depthScale}px`,
-   //       padding: `${scaledPadding}px ${scaledPadding + 4}px`,
-          minWidth: `${60 * depthScale}px`,
-          maxWidth: `${320 * depthScale}px`,
-  //        boxShadow: '0 8px 25px rgba(79, 209, 199, 0.35)',
-          color: '#2d3748',
-          transform: `scale(${depthScale})`
+          background: '#fed7aa', // Light orange pastel background for policies
+          fontSize: `${Math.max(12, 15 * depthScale)}px`,
+          boxShadow: `0 10px 28px rgba(254, 215, 170, ${shadowIntensity})`,
+          color: 'black',
+          border: '2px solid rgba(0, 0, 0, 0.1)'
         };
       case 'jsonCode':
         return {
           ...baseStyle,
-          background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
-          fontSize: `${14 * depthScale}px`,
-    //      padding: `${scaledPadding}px ${scaledPadding + 4}px`,
-          minWidth: `${60 * depthScale}px`,
-          maxWidth: `${320 * depthScale}px`,
- //         boxShadow: '0 8px 25px rgba(255, 154, 158, 0.35)',
-          color: '#7c2d12',
-          transform: `scale(${depthScale})`
+          background: 'white', // White background for JSON code
+          fontSize: `${Math.max(12, 15 * depthScale)}px`,
+          boxShadow: `0 10px 28px rgba(0, 0, 0, 0.15)`,
+          color: 'black',
+          border: '2px solid rgba(0, 0, 0, 0.2)'
         };
       default:
         return {
           ...baseStyle,
-          background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
-          fontSize: `${13 * depthScale}px`,
-      //    padding: `${scaledPadding}px ${scaledPadding + 4}px`,
-          minWidth: `${200 * depthScale}px`,
-          maxWidth: `${300 * depthScale}px`,
-      //    boxShadow: '0 6px 20px rgba(165, 180, 252, 0.3)',
-          color: '#3730a3',
-          transform: `scale(${depthScale})`
+          background: 'white',
+          fontSize: `${Math.max(12, 14 * depthScale)}px`,
+          boxShadow: `0 8px 22px rgba(0, 0, 0, 0.15)`,
+          color: 'black',
+          border: '2px solid rgba(0, 0, 0, 0.2)'
         };
     }
   };
 
   const nodeStyle = getNodeStyle(data.nodeType, data.depth);
   const icon = getNodeIcon(data.nodeType);
+ 
+  // Check if text is long and needs expansion functionality
+  const isLongText = data.label && data.label.length > 50;
+  const displayText = isLongText && !isExpanded ? data.label.substring(0, 47) + '...' : data.label;
 
   return (
-    <div 
+    <div
       style={nodeStyle}
       className="custom-node"
       title={`${data.originalContent || data.label} (Depth: ${data.depth || 0})`}
+      onClick={isLongText ? () => setIsExpanded(!isExpanded) : undefined}
     >
-      <div style={{ 
+      <div style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '12px',
         justifyContent: 'center',
-        flexWrap: 'wrap'
+        flexDirection: 'column',
+        cursor: isLongText ? 'pointer' : 'default',
+        textAlign: 'center',
+        width: '100%',
+        height: '100%'
       }}>
-        <span style={{ 
-          fontSize: '20px', 
-          flexShrink: 0,
-          opacity: 0.9
+        <div style={{
+          fontWeight: 'inherit',
+          wordBreak: 'break-word',
+          lineHeight: '1.3',
+          overflow: 'hidden'
         }}>
-          {icon}
-        </span>
-        <div style={{ 
-          flex: 1, 
-          minWidth: '120px',
-          textAlign: 'center'
-        }}>
-          {data.label}
+          {displayText}
+          {isLongText && (
+            <div style={{
+              fontSize: '11px',
+              opacity: 0.7,
+              marginTop: '4px',
+              fontStyle: 'italic'
+            }}>
+              {isExpanded ? 'Click to collapse' : 'Click to expand'}
+            </div>
+          )}
         </div>
       </div>
-      
-      {/* Enhanced depth indicator */}
+     
+      {/* Enhanced depth indicator with better visibility */}
       {data.depth !== undefined && data.depth > 0 && (
         <div style={{
           position: 'absolute',
-          top: '-8px',
-          right: '-8px',
-          background: 'rgba(0,0,0,0.7)',
+          top: '-10px',
+          right: '-10px',
+          background: 'linear-gradient(135deg, #1a365d 0%, #2d3748 100%)',
           color: 'white',
           borderRadius: '50%',
-          width: '18px',
-          height: '18px',
-          fontSize: '11px',
+          width: '22px',
+          height: '22px',
+          fontSize: '12px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           fontWeight: 'bold',
-          border: '2px solid white',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
+          border: '3px solid white',
+          boxShadow: '0 4px 8px rgba(0,0,0,0.4)',
+          zIndex: 10
         }}>
           {data.depth}
         </div>
       )}
-      
-      
-      
-      {/* Enhanced connection handles for better arrow visibility */}
+     
+      {/* Enhanced connection handles with better visibility and positioning */}
       <Handle
         type="target"
         position={Position.Top}
-        style={{ 
-          background: '#64748b', 
-        //  border: '3px solid white',
-          width: '0px',
-          height: '0px',
-          top: '0px',
-         // boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+        style={{
+          background: 'black', // Black handles for arrows
+          border: '2px solid white',
+          width: '10px',
+          height: '10px',
+          top: '-5px',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+          borderRadius: '50%'
         }}
         isConnectable={isConnectable}
       />
       <Handle
         type="source"
         position={Position.Bottom}
-        style={{ 
-          background: '#64748b', 
-         // border: '3px solid white',
-          width: '0px',
-          height: '0px',
-          bottom: '0px',
-         // boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+        style={{
+          background: 'black', // Black handles for arrows
+          border: '2px solid white',
+          width: '10px',
+          height: '10px',
+          bottom: '-5px',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+          borderRadius: '50%'
         }}
         isConnectable={isConnectable}
       />
@@ -224,78 +232,230 @@ const nodeTypes = {
   default: CustomNode,
 };
 
-// Enhanced default graph for better demo with Business Tool example
+// Enhanced complex default graph with backend-style positioning
 const defaultGraph = {
   nodes: [
-    { 
-      id: '1', 
-      position: { x: 0, y: 0 }, 
-      data: { 
-        label: '🛠️ Default Business Tool', 
+    // Root Business Tool
+    {
+      id: '1',
+      position: { x: 0, y: 0 },
+      data: {
+        label: 'Customer Relationship Management System',
         nodeType: 'businessTool',
         storage: 'default',
-        depth: 0
+        depth: 0,
+        width: 200,
+        height: 150
       },
+      style: { width: 200, height: 150 },
       type: 'custom'
     },
-    { 
-      id: '2', 
-      position: { x: -200, y: 200 }, 
-      data: { 
-        label: '❓ Sample Condition', 
+   
+    // Level 1 - Main Conditions with backend spacing
+    {
+      id: '2',
+      position: { x: -345, y: 100 },
+      data: {
+        label: 'Customer Status Check',
         nodeType: 'condition',
         storage: 'default',
-        depth: 1
+        depth: 1,
+        width: 200,
+        height: 150
       },
+      style: { width: 200, height: 150 },
       type: 'custom'
     },
-    { 
-      id: '3', 
-      position: { x: 200, y: 200 }, 
-      data: { 
-        label: '📅 Sample Event', 
+    {
+      id: '3',
+      position: { x: -115, y: 100 },
+      data: {
+        label: 'Account Verification',
+        nodeType: 'condition',
+        storage: 'default',
+        depth: 1,
+        width: 200,
+        height: 150
+      },
+      style: { width: 200, height: 150 },
+      type: 'custom'
+    },
+    {
+      id: '4',
+      position: { x: 115, y: 100 },
+      data: {
+        label: 'Payment Method Valid',
+        nodeType: 'condition',
+        storage: 'default',
+        depth: 1,
+        width: 200,
+        height: 150
+      },
+      style: { width: 200, height: 150 },
+      type: 'custom'
+    },
+    {
+      id: '5',
+      position: { x: 345, y: 100 },
+      data: {
+        label: 'Service Availability',
+        nodeType: 'condition',
+        storage: 'default',
+        depth: 1,
+        width: 200,
+        height: 150
+      },
+      style: { width: 200, height: 150 },
+      type: 'custom'
+    },
+   
+    // Level 2 - Events and Policies
+    {
+      id: '6',
+      position: { x: -460, y: 200 },
+      data: {
+        label: 'New Customer Registration',
         nodeType: 'event',
         storage: 'default',
-        depth: 1
+        depth: 2,
+        width: 200,
+        height: 150
       },
+      style: { width: 200, height: 150 },
       type: 'custom'
     },
-    { 
-      id: '4', 
-      position: { x: 0, y: 400 }, 
-      data: { 
-        label: '💻 JSON Code Required', 
-        nodeType: 'jsonCode',
+    {
+      id: '7',
+      position: { x: -230, y: 200 },
+      data: {
+        label: 'Existing Customer Login',
+        nodeType: 'event',
         storage: 'default',
-        depth: 2
+        depth: 2,
+        width: 200,
+        height: 150
       },
+      style: { width: 200, height: 150 },
+      type: 'custom'
+    },
+    {
+      id: '8',
+      position: { x: 0, y: 200 },
+      data: {
+        label: 'Account Verification Policy',
+        nodeType: 'policy',
+        storage: 'default',
+        depth: 2,
+        width: 200,
+        height: 150
+      },
+      style: { width: 200, height: 150 },
+      type: 'custom'
+    },
+    {
+      id: '9',
+      position: { x: 230, y: 200 },
+      data: {
+        label: 'KYC Verification Required',
+        nodeType: 'event',
+        storage: 'default',
+        depth: 2,
+        width: 200,
+        height: 150
+      },
+      style: { width: 200, height: 150 },
+      type: 'custom'
+    },
+    {
+      id: '10',
+      position: { x: 460, y: 200 },
+      data: {
+        label: 'Credit Card Processing',
+        nodeType: 'event',
+        storage: 'default',
+        depth: 2,
+        width: 200,
+        height: 150
+      },
+      style: { width: 200, height: 150 },
       type: 'custom'
     }
   ],
   edges: [
-    { 
-      id: 'e1-2', 
-      source: '1', 
-      target: '2', 
+    // Level 1 connections
+    {
+      id: 'e1-2',
+      source: '1',
+      target: '2',
       type: 'smoothstep',
-      style: { stroke: '#a5b4fc', strokeWidth: 2 },
-      markerEnd: { type: 'arrowclosed', color: '#a5b4fc' }
+      style: { stroke: 'black', strokeWidth: 2 },
+      markerEnd: { type: 'arrowclosed', color: 'black', width: 20, height: 20 }
     },
-    { 
-      id: 'e1-3', 
-      source: '1', 
-      target: '3', 
+    {
+      id: 'e1-3',
+      source: '1',
+      target: '3',
       type: 'smoothstep',
-      style: { stroke: '#4fd1c7', strokeWidth: 2, strokeDasharray: '8,4' },
-      markerEnd: { type: 'arrowclosed', color: '#4fd1c7' }
+      style: { stroke: 'black', strokeWidth: 2 },
+      markerEnd: { type: 'arrowclosed', color: 'black', width: 20, height: 20 }
     },
-    { 
-      id: 'e3-4', 
-      source: '3', 
-      target: '4', 
+    {
+      id: 'e1-4',
+      source: '1',
+      target: '4',
       type: 'smoothstep',
-      style: { stroke: '#ff9a9e', strokeWidth: 2, strokeDasharray: '5,5' },
-      markerEnd: { type: 'arrowclosed', color: '#ff9a9e' }
+      style: { stroke: 'black', strokeWidth: 2 },
+      markerEnd: { type: 'arrowclosed', color: 'black', width: 20, height: 20 }
+    },
+    {
+      id: 'e1-5',
+      source: '1',
+      target: '5',
+      type: 'smoothstep',
+      style: { stroke: 'black', strokeWidth: 2 },
+      markerEnd: { type: 'arrowclosed', color: 'black', width: 20, height: 20 }
+    },
+   
+    // Level 2 connections
+    {
+      id: 'e2-6',
+      source: '2',
+      target: '6',
+      type: 'smoothstep',
+      style: { stroke: 'black', strokeWidth: 2 },
+      markerEnd: { type: 'arrowclosed', color: 'black', width: 20, height: 20 }
+    },
+    {
+      id: 'e2-7',
+      source: '2',
+      target: '7',
+      type: 'smoothstep',
+      style: { stroke: 'black', strokeWidth: 2 },
+      markerEnd: { type: 'arrowclosed', color: 'black', width: 20, height: 20 }
+    },
+    {
+      id: 'e3-8',
+      source: '3',
+      target: '8',
+      type: 'smoothstep',
+      style: { stroke: 'black', strokeWidth: 2 },
+      markerEnd: { type: 'arrowclosed', color: 'black', width: 20, height: 20 }
+    },
+    {
+      id: 'e4-9',
+      source: '4',
+      target: '9',
+      type: 'smoothstep',
+      style: { stroke: 'black', strokeWidth: 2 },
+      markerEnd: { type: 'arrowclosed', color: 'black', width: 20, height: 20 }
+    },
+    {
+      id: 'e5-10',
+      source: '5',
+      target: '10',
+      type: 'smoothstep',
+      style: { stroke: 'black', strokeWidth: 2 },
+      markerEnd: { type: 'arrowclosed', color: 'black', width: 20, height: 20 }
     }
   ]
 };
@@ -311,18 +471,18 @@ const fetchGraphDataFromServer = async (pageId) => {
   try {
     console.log(`🔍 Fetching graph data from server for page: ${pageId}`);
     console.log(`🌐 Server URL: ${SERVER_URL}/api/graph-data/${pageId}`);
-    
+   
     const response = await fetch(`${SERVER_URL}/api/graph-data/${pageId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      mode: 'cors' // Enable CORS
+      mode: 'cors'
     });
-    
+   
     console.log(`📊 Response status: ${response.status}`);
-    
+   
     if (!response.ok) {
       if (response.status === 404) {
         console.warn(`📄 Graph data not found for page: ${pageId}`);
@@ -330,7 +490,7 @@ const fetchGraphDataFromServer = async (pageId) => {
       }
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-    
+   
     const data = await response.json();
     console.log('✅ Successfully fetched graph data:', {
       success: data.success,
@@ -339,9 +499,10 @@ const fetchGraphDataFromServer = async (pageId) => {
       pageId: data.pageId,
       storage: data.storage,
       maxDepth: data.metadata?.maxDepth,
-      nodeTypes: data.metadata?.nodeTypes
+      nodeTypes: data.metadata?.nodeTypes,
+      layout: data.metadata?.layout
     });
-    
+   
     return data;
   } catch (error) {
     console.error('❌ Failed to fetch graph data:', error);
@@ -353,72 +514,69 @@ const fetchGraphDataFromServer = async (pageId) => {
 
 function GraphApp() {
   const currentPage = getPageFromUrl();
-  
+ 
   // State management
   const [graphData, setGraphData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dataSource, setDataSource] = useState('unknown');
   const [graphType, setGraphType] = useState('unknown');
-  
-  // React Flow hooks - must be called unconditionally
+ 
+  // React Flow hooks
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  
+ 
   // Load graph data on mount
   useEffect(() => {
     const loadGraphData = async () => {
       console.log(`🚀 Loading graph data for page: ${currentPage}`);
-      
+     
       if (!currentPage) {
-        console.log('📭 No page ID in URL, using default graph');
+        console.log('📭 No page ID in URL, using enhanced default graph');
         setGraphData(defaultGraph);
         setDataSource('default');
         setGraphType('businessTool');
         setLoading(false);
         return;
       }
-      
+     
       setLoading(true);
       setError(null);
-      
+     
       try {
         const serverData = await fetchGraphDataFromServer(currentPage);
-        
+       
         if (serverData && serverData.success) {
           console.log('✅ Using server data');
           setGraphData(serverData);
           setDataSource(serverData.storage || 'server');
-          
+         
           // Determine graph type from node types and actual nodes
           const nodeTypes = serverData.metadata?.nodeTypes || {};
           const nodes = serverData.nodes || [];
-          
-          // Check actual node data for better detection
-          const hasBusinessTool = nodes.some(node => 
-            node.data?.nodeType === 'businessTool' || 
+         
+          const hasBusinessTool = nodes.some(node =>
+            node.data?.nodeType === 'businessTool' ||
             node.data?.label?.includes('Business Tool')
           );
-          const hasBusinessECP = nodes.some(node => 
-            node.data?.nodeType === 'businessECP' || 
+          const hasBusinessECP = nodes.some(node =>
+            node.data?.nodeType === 'businessECP' ||
             node.data?.label?.includes('Business ECP')
           );
-          
+         
           if (hasBusinessTool && nodeTypes.businessTool > 0) {
             setGraphType('businessTool');
           } else if (hasBusinessECP && nodeTypes.businessECP > 0) {
             setGraphType('businessECP');
           } else if (nodeTypes.businessECP > 0 || nodeTypes.policies > 0) {
-            // Fallback: if we have policies, it's likely a Business ECP
             setGraphType('businessECP');
           } else if (nodeTypes.businessTool > 0 || nodeTypes.events > 0) {
-            // Fallback: if we have events, it's likely a Business Tool
             setGraphType('businessTool');
           } else {
             setGraphType('mixed');
           }
         } else {
-          console.log('📦 Server data not available, using default');
+          console.log('📦 Server data not available, using enhanced default');
           setGraphData(defaultGraph);
           setDataSource('default-fallback');
           setGraphType('businessTool');
@@ -433,49 +591,110 @@ function GraphApp() {
         setLoading(false);
       }
     };
-    
+   
     loadGraphData();
   }, [currentPage]);
-  
-  // Update React Flow nodes and edges when data changes
+ 
+  // Update React Flow nodes and edges when data changes - RESPECT BACKEND POSITIONING
   useEffect(() => {
     if (graphData) {
       console.log(`🔄 Updating React Flow with data from: ${dataSource}`);
-      
-      // Process nodes and ensure they have the correct structure
-      const processedNodes = (graphData.nodes || []).map(node => ({
-        ...node,
-        type: 'custom',
-        data: {
-          ...node.data,
-          storage: dataSource,
-          // Ensure depth is available for styling
-          depth: node.data?.depth !== undefined ? node.data.depth : 0
+     
+      // Get layout configuration from backend if available
+      const layoutConfig = graphData.metadata?.layout || {};
+      console.log('📐 Backend layout config:', layoutConfig);
+     
+      // Process nodes - PRESERVE backend positions and dimensions
+      let processedNodes = (graphData.nodes || []).map(node => {
+        // Preserve backend position and dimensions exactly
+        const nodeWithBackendLayout = {
+          ...node,
+          type: 'custom',
+          data: {
+            ...node.data,
+            storage: dataSource,
+            depth: node.data?.depth !== undefined ? node.data.depth : 0,
+            // Keep backend dimensions
+            width: node.data?.width || node.style?.width || layoutConfig.nodeWidth || 200,
+            height: node.data?.height || node.style?.height || layoutConfig.nodeHeight || 150
+          },
+          // Preserve backend style with dimensions
+          style: {
+            ...node.style,
+            width: node.data?.width || node.style?.width || layoutConfig.nodeWidth || 200,
+            height: node.data?.height || node.style?.height || layoutConfig.nodeHeight || 150
+          }
+        };
+        
+        // IMPORTANT: If backend provided position, use it exactly - NO LAYOUT OPTIMIZATION
+        if (node.position) {
+          nodeWithBackendLayout.position = { ...node.position };
         }
-      }));
+        
+        return nodeWithBackendLayout;
+      });
+     
+      // ===== ADDED POSITION LOGGING =====
+      console.log('🔍 DETAILED NODE POSITION ANALYSIS:');
+      console.log('================================');
       
-      // Process edges with enhanced styling for better visibility in wide layouts
-      const processedEdges = (graphData.edges || []).map(edge => ({
-        ...edge,
-        type: 'smoothstep',
-        style: {
-          ...edge.style,
-          strokeWidth: edge.style?.strokeWidth || 2,
-          stroke: edge.style?.stroke || '#64748b'
-        },
-        markerEnd: {
-          type: 'arrowclosed',
-          color: edge.style?.stroke || '#64748b',
-          width: 20,
-          height: 20
+      // Group nodes by depth for analysis
+      const nodesByDepth = {};
+      processedNodes.forEach(node => {
+        const depth = node.data.depth || 0;
+        if (!nodesByDepth[depth]) nodesByDepth[depth] = [];
+        nodesByDepth[depth].push(node);
+      });
+      
+      // Log each level
+      Object.keys(nodesByDepth).sort((a, b) => a - b).forEach(depth => {
+        console.log(`📊 LEVEL ${depth}:`);
+        nodesByDepth[depth].forEach(node => {
+          console.log(`  Node ${node.id} (${node.data.nodeType}): "${node.data.label}" at position (${node.position.x}, ${node.position.y})`);
+        });
+      });
+      
+      // Analyze parent-child relationships
+      console.log('\n🔗 PARENT-CHILD ANALYSIS:');
+      console.log('=========================');
+      
+      // Get edges to understand relationships
+      const edgeMap = {};
+      (graphData.edges || []).forEach(edge => {
+        if (!edgeMap[edge.source]) edgeMap[edge.source] = [];
+        edgeMap[edge.source].push(edge.target);
+      });
+      
+      Object.keys(edgeMap).forEach(parentId => {
+        const parent = processedNodes.find(n => n.id === parentId);
+        const children = edgeMap[parentId].map(childId => processedNodes.find(n => n.id === childId));
+        
+        if (parent && children.length > 0) {
+          const childPositions = children.map(c => c.position.x);
+          const leftmost = Math.min(...childPositions);
+          const rightmost = Math.max(...childPositions);
+          const expectedCenter = (leftmost + rightmost) / 2;
+          const actualParentX = parent.position.x;
+          const offset = actualParentX - expectedCenter;
+          
+          console.log(`📍 Parent ${parentId} (${parent.data.label}):`);
+          console.log(`   Position: (${actualParentX}, ${parent.position.y})`);
+          console.log(`   Children: ${children.map(c => `${c.id}(${c.position.x})`).join(', ')}`);
+          console.log(`   Child span: ${leftmost} to ${rightmost}`);
+          console.log(`   Expected center: ${expectedCenter}`);
+          console.log(`   Actual position: ${actualParentX}`);
+          console.log(`   Offset: ${offset} ${offset === 0 ? '✅ CENTERED' : '❌ OFF-CENTER'}`);
+          console.log('');
         }
-      }));
+      });
       
-      console.log(`📊 Setting ${processedNodes.length} nodes and ${processedEdges.length} edges`);
+      // DO NOT apply any layout optimization - use backend positions exactly as provided
+      console.log(`📊 Using backend positions exactly as provided`);
+      console.log(`📊 Setting ${processedNodes.length} nodes and ${(graphData.edges || []).length} edges`);
       console.log(`🛠️ Graph type: ${graphType}`);
-      
+     
       setNodes(processedNodes);
-      setEdges(processedEdges);
+      setEdges(graphData.edges || []);
     }
   }, [graphData, dataSource, setNodes, setEdges]);
 
@@ -489,37 +708,38 @@ function GraphApp() {
     hasGraphData: !!graphData,
     maxDepth: graphData?.metadata?.maxDepth || 0,
     nodeTypes: graphData?.metadata?.nodeTypes,
+    layoutConfig: graphData?.metadata?.layout,
     serverUrl: SERVER_URL
   };
 
-  // Loading state with enhanced messaging
+  // Enhanced loading state
   if (loading) {
     return (
-      <div style={{ 
-        width: '100vw', 
+      <div style={{
+        width: '100vw',
         height: '100vh',
-        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'column',
-        gap: '24px'
+        gap: '32px'
       }}>
         <div style={{
-          width: '70px',
-          height: '70px',
-          border: '5px solid #e2e8f0',
-          borderTop: '5px solid #3b82f6',
+          width: '80px',
+          height: '80px',
+          border: '6px solid rgba(255, 255, 255, 0.3)',
+          borderTop: '6px solid #ffffff',
           borderRadius: '50%',
-          animation: 'spin 1.2s linear infinite'
+          animation: 'spin 1s linear infinite'
         }}></div>
-        <div style={{ color: '#64748b', fontSize: '18px', fontWeight: '600' }}>
-          Loading graph data...
+        <div style={{ color: 'white', fontSize: '22px', fontWeight: '700', textAlign: 'center' }}>
+          Loading Enhanced Graph Visualization...
         </div>
-        <div style={{ color: '#94a3b8', fontSize: '14px', textAlign: 'center' }}>
-          <div>Page: {currentPage || 'No page specified'}</div>
-          <div style={{ marginTop: '4px', fontSize: '12px' }}>
-            Supporting Business Tools, ECPs, Events, Conditions & JSON Code
+        <div style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '16px', textAlign: 'center', maxWidth: '400px' }}>
+          <div>Page: {currentPage || 'Default Complex Demo'}</div>
+          <div style={{ marginTop: '8px', fontSize: '14px' }}>
+            Supporting Business Tools, ECPs, Events, Conditions, Policies & JSON Code
           </div>
         </div>
         <style>{`
@@ -531,53 +751,54 @@ function GraphApp() {
       </div>
     );
   }
-  
-  // Error state
+ 
+  // Enhanced error state
   if (error && !graphData) {
     return (
-      <div style={{ 
-        width: '100vw', 
+      <div style={{
+        width: '100vw',
         height: '100vh',
-        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+        background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'column',
-        gap: '20px'
+        gap: '24px'
       }}>
-        <div style={{ color: '#ef4444', fontSize: '24px', fontWeight: '700' }}>
-          ❌ Error Loading Graph
+        <div style={{ color: 'white', fontSize: '28px', fontWeight: '700' }}>
+          ❌ Error Loading Enhanced Graph
         </div>
-        <div style={{ color: '#64748b', fontSize: '16px', textAlign: 'center', maxWidth: '500px' }}>
+        <div style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '18px', textAlign: 'center', maxWidth: '600px' }}>
           {error}
         </div>
-        <div style={{ color: '#94a3b8', fontSize: '12px' }}>
+        <div style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '14px' }}>
           Page: {currentPage} | Source: {dataSource} | Type: {graphType}
         </div>
-        <button 
-          onClick={() => window.location.reload()} 
+        <button
+          onClick={() => window.location.reload()}
           style={{
-            background: '#3b82f6',
+            background: 'rgba(255, 255, 255, 0.2)',
             color: 'white',
-            border: 'none',
-            padding: '14px 28px',
-            borderRadius: '8px',
+            border: '2px solid white',
+            padding: '16px 32px',
+            borderRadius: '12px',
             cursor: 'pointer',
-            fontWeight: '600',
-            fontSize: '16px'
+            fontWeight: '700',
+            fontSize: '18px',
+            backdropFilter: 'blur(10px)'
           }}
         >
-          🔄 Retry
+          🔄 Retry Loading
         </button>
       </div>
     );
   }
 
   return (
-    <div style={{ 
-      width: '100vw', 
+    <div style={{
+      width: '100vw',
       height: '100vh',
-      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+      background: 'white', // White background for entire graph
       position: 'relative'
     }}>
       <ReactFlow
@@ -588,7 +809,7 @@ function GraphApp() {
         onEdgesChange={onEdgesChange}
         nodesDraggable={false}
         nodesConnectable={false}
-        elementsSelectable={true} // Allow selection for better UX
+        elementsSelectable={true}
         selectNodesOnDrag={false}
         panOnDrag={true}
         zoomOnScroll={true}
@@ -596,55 +817,51 @@ function GraphApp() {
         panOnScroll={false}
         fitView
         fitViewOptions={{
-          padding: 0.15, // Reduced padding for wide layouts
-          minZoom: 0.1,  // Allow more zoom out for wide structures
-          maxZoom: 1.5,
-          includeHiddenNodes: false
+          padding: 0.1,
+          minZoom: 0.1,
+          maxZoom: 10,
+          includeHiddenNodes: true
         }}
-        // Enhanced connection line styling
-        connectionLineStyle={{ stroke: '#64748b', strokeWidth: 2 }}
+        connectionLineStyle={{ stroke: '#4878bc', strokeWidth: 2 }}
         connectionLineType="smoothstep"
       >
-        <Background 
-          variant="dots" 
-          gap={40}  // Increased gap for wide layouts
-          size={2}  // Slightly larger dots
-          color="#cbd5e1"
+        <Background
+          variant="dots"
+          gap={50}
+          size={2}
+          color="#e5e7eb"
+          style={{ opacity: 0.5 }}
         />
-        <Controls 
+        <Controls
           style={{
             background: 'rgba(255, 255, 255, 0.95)',
             border: '1px solid #e2e8f0',
-            borderRadius: '10px',
-            boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
-            padding: '4px'
+            borderRadius: '12px',
+            boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
+            padding: '6px'
           }}
-          showInteractive={false} // Hide since we disabled interactions
+          showInteractive={false}
         />
-        
       </ReactFlow>
       
-      {/* Graph Type Indicator */}
-      <div style={{
-        position: 'absolute',
-        top: '15px',
-        right: '15px',
-        background: 'rgba(255, 255, 255, 0.98)',
-        padding: '12px 16px',
-        borderRadius: '10px',
-        border: '1px solid #e2e8f0',
-        fontSize: '14px',
-        fontWeight: '600',
-        color: '#1e293b',
-        boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-        backdropFilter: 'blur(10px)'
-      }}>
-        {graphType === 'businessTool' && '🛠️ Business Tool'}
-        {graphType === 'businessECP' && '🏢 Business ECP'}
-        {graphType === 'mixed' && '🔄 Mixed Structure'}
-        {graphType === 'unknown' && '📊 Graph Structure'}
-      </div>
-      
+      {/* Debug info overlay */}
+      {process.env.NODE_ENV === 'development' && (
+        <div style={{
+          position: 'absolute',
+          top: '10px',
+          left: '10px',
+          background: 'rgba(0,0,0,0.8)',
+          color: 'white',
+          padding: '10px',
+          borderRadius: '8px',
+          fontSize: '12px',
+          maxWidth: '300px'
+        }}>
+          <div>Layout Config: {JSON.stringify(debugInfo.layoutConfig)}</div>
+          <div>Nodes: {debugInfo.nodeCount}</div>
+          <div>Source: {debugInfo.dataSource}</div>
+        </div>
+      )}
     </div>
   );
 }
