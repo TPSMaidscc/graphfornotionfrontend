@@ -16,100 +16,140 @@ const SERVER_URL = 'https://backendfornotiongraph.vercel.app'; // Your Vercel ba
 
 
 // Enhanced Custom node component with fixed dimensions from backend
+// Enhanced Custom node component with dynamic expansion
 const CustomNode = ({ data, isConnectable }) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
  
   const getNodeIcon = (nodeType) => {
-    // Removed emoji icons as requested
     return '';
   };
 
-  const getNodeStyle = (nodeType, depth = 0) => {
-    // Use backend dimensions if available, otherwise use defaults
-    const width = 200;
-    const height = 100;
+  // Function to calculate dynamic dimensions based on text
+  const calculateDynamicSize = (text, isExpanded, baseWidth = 200, baseHeight = 100) => {
+    if (!isExpanded) {
+      return { width: baseWidth, height: baseHeight };
+    }
+
+    // Estimate text dimensions
+    const averageCharWidth = 8; // Approximate pixels per character
+    const lineHeight = 20; // Approximate pixels per line
+    const padding = 20; // Total padding
+    const maxWidth = 400; // Maximum width before wrapping
     
-    // Enhanced base styles with fixed dimensions
+    // Calculate width needed
+    const textLength = text.length;
+    const estimatedWidth = Math.min(textLength * averageCharWidth + padding, maxWidth);
+    
+    // Calculate height needed based on text wrapping
+    const charsPerLine = Math.floor((estimatedWidth - padding) / averageCharWidth);
+    const estimatedLines = Math.ceil(textLength / charsPerLine);
+    const estimatedHeight = Math.max(baseHeight, estimatedLines * lineHeight + padding + 40); // +40 for expand hint
+    
+    return {
+      width: Math.max(baseWidth, estimatedWidth),
+      height: Math.max(baseHeight, estimatedHeight)
+    };
+  };
+
+  const getNodeStyle = (nodeType, depth = 0) => {
+    // Calculate dynamic size based on expansion state
+    const fullText = data.originalContent || data.label || '';
+    const { width, height } = calculateDynamicSize(fullText, isExpanded, 200, 100);
+    
+    // Enhanced base styles with dynamic dimensions
     const baseStyle = {
       border: 'none',
       borderRadius: '16px',
       fontWeight: '600',
       textAlign: 'center',
       position: 'relative',
-      cursor: 'default',
+      cursor: 'pointer', // Always clickable
       wordWrap: 'break-word',
       whiteSpace: 'normal',
       lineHeight: '1.4',
-      transition: 'all 0.3s ease',
+      transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
       backdropFilter: 'blur(8px)',
       width: `${width}px`,
       height: `${height}px`,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '10px'
+      padding: isExpanded ? '15px' : '10px',
+      transformOrigin: 'center center',
+      zIndex: isExpanded ? 1000 : 1, // Bring expanded nodes to front
+      overflow: 'hidden'
     };
 
-    // Enhanced depth scaling with better visual hierarchy
+    // Enhanced depth scaling
     const depthScale = Math.max(0.75, 1 - (depth * 0.04));
-    
-    // Add depth-based shadow intensity
     const shadowIntensity = Math.max(0.2, 0.5 - (depth * 0.05));
    
     switch (nodeType) {
       case 'businessTool':
         return {
           ...baseStyle,
-          background: '#27a567', // Solid green background
-          fontSize: `${Math.max(12, 17 * depthScale)}px`,
+          background: '#27a567',
+          fontSize: `${Math.max(12, isExpanded ? 16 : 17 * depthScale)}px`,
           fontWeight: '700',
-          boxShadow: `0 12px 35px rgba(102, 126, 234, ${shadowIntensity})`,
+          boxShadow: isExpanded 
+            ? `0 25px 80px rgba(39, 165, 103, 0.4)` 
+            : `0 12px 35px rgba(102, 126, 234, ${shadowIntensity})`,
           color: 'white',
           border: '3px solid rgba(0, 0, 0, 0.1)'
         };
       case 'businessECP':
         return {
           ...baseStyle,
-          background: '#27a567', // Solid green background
-          fontSize: `${Math.max(12, 17 * depthScale)}px`,
+          background: '#27a567',
+          fontSize: `${Math.max(12, isExpanded ? 16 : 17 * depthScale)}px`,
           fontWeight: '700',
-          boxShadow: `0 12px 35px rgba(102, 126, 234, ${shadowIntensity})`,
+          boxShadow: isExpanded 
+            ? `0 25px 80px rgba(39, 165, 103, 0.4)` 
+            : `0 12px 35px rgba(102, 126, 234, ${shadowIntensity})`,
           color: 'white',
           border: '3px solid rgba(0, 0, 0, 0.1)'
         };
       case 'condition':
         return {
           ...baseStyle,
-          background: '#4878bc', // Darker blue background for conditions
-          fontSize: `${Math.max(12, 15 * depthScale)}px`,
-          boxShadow: `0 10px 28px rgba(30, 58, 138, ${shadowIntensity})`,
+          background: '#4878bc',
+          fontSize: `${Math.max(12, isExpanded ? 14 : 15 * depthScale)}px`,
+          boxShadow: isExpanded 
+            ? `0 25px 80px rgba(72, 120, 188, 0.4)` 
+            : `0 10px 28px rgba(30, 58, 138, ${shadowIntensity})`,
           color: 'white',
           border: '2px solid rgba(255, 255, 255, 0.2)'
         };
       case 'event':
         return {
           ...baseStyle,
-          background: '#fed7aa', // Light orange background for events
-          fontSize: `${Math.max(12, 15 * depthScale)}px`,
-          boxShadow: `0 10px 28px rgba(0, 0, 0, 0.15)`,
+          background: '#fed7aa',
+          fontSize: `${Math.max(12, isExpanded ? 14 : 15 * depthScale)}px`,
+          boxShadow: isExpanded 
+            ? `0 25px 80px rgba(254, 215, 170, 0.4)` 
+            : `0 10px 28px rgba(0, 0, 0, 0.15)`,
           color: 'black',
           border: '2px solid rgba(0, 0, 0, 0.2)'
         };
       case 'policy':
         return {
           ...baseStyle,
-          background: '#fed7aa', // Light orange pastel background for policies
-          fontSize: `${Math.max(12, 15 * depthScale)}px`,
-          boxShadow: `0 10px 28px rgba(254, 215, 170, ${shadowIntensity})`,
+          background: '#fed7aa',
+          fontSize: `${Math.max(12, isExpanded ? 14 : 15 * depthScale)}px`,
+          boxShadow: isExpanded 
+            ? `0 25px 80px rgba(254, 215, 170, 0.4)` 
+            : `0 10px 28px rgba(254, 215, 170, ${shadowIntensity})`,
           color: 'black',
           border: '2px solid rgba(0, 0, 0, 0.1)'
         };
       case 'jsonCode':
         return {
           ...baseStyle,
-          background: 'white', // White background for JSON code
-          fontSize: `${Math.max(12, 15 * depthScale)}px`,
-          boxShadow: `0 10px 28px rgba(0, 0, 0, 0.15)`,
+          background: 'white',
+          fontSize: `${Math.max(12, isExpanded ? 14 : 15 * depthScale)}px`,
+          boxShadow: isExpanded 
+            ? `0 25px 80px rgba(0, 0, 0, 0.3)` 
+            : `0 10px 28px rgba(0, 0, 0, 0.15)`,
           color: 'black',
           border: '2px solid rgba(0, 0, 0, 0.2)'
         };
@@ -117,8 +157,10 @@ const CustomNode = ({ data, isConnectable }) => {
         return {
           ...baseStyle,
           background: 'white',
-          fontSize: `${Math.max(12, 14 * depthScale)}px`,
-          boxShadow: `0 8px 22px rgba(0, 0, 0, 0.15)`,
+          fontSize: `${Math.max(12, isExpanded ? 14 : 14 * depthScale)}px`,
+          boxShadow: isExpanded 
+            ? `0 25px 80px rgba(0, 0, 0, 0.3)` 
+            : `0 8px 22px rgba(0, 0, 0, 0.15)`,
           color: 'black',
           border: '2px solid rgba(0, 0, 0, 0.2)'
         };
@@ -128,53 +170,66 @@ const CustomNode = ({ data, isConnectable }) => {
   const nodeStyle = getNodeStyle(data.nodeType, data.depth);
   const icon = getNodeIcon(data.nodeType);
  
-  // Check if text is long and needs expansion functionality
-  const isLongText = data.label && data.label.length > 50;
-  const displayText = isLongText && !isExpanded ? data.label.substring(0, 47) + '...' : data.label;
+  // Get the full text content
+  const fullText = data.originalContent || data.label || '';
+  
+  // Determine if text should be truncated when collapsed
+  const shouldTruncate = fullText.length > 60; // Threshold for truncation
+  const truncatedText = shouldTruncate ? fullText.substring(0, 57) + '...' : fullText;
+  
+  // Display text based on expansion state
+  const displayText = isExpanded ? fullText : truncatedText;
 
   return (
     <div
       style={nodeStyle}
       className="custom-node"
-      title={`${data.originalContent || data.label} (Depth: ${data.depth || 0})`}
-      onClick={isLongText ? () => setIsExpanded(!isExpanded) : undefined}
+      title={`${fullText} (Depth: ${data.depth || 0}) - Click to ${isExpanded ? 'collapse' : 'expand'}`}
+      onClick={() => setIsExpanded(!isExpanded)}
     >
       <div style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'column',
-        cursor: isLongText ? 'pointer' : 'default',
+        cursor: 'pointer',
         textAlign: 'center',
         width: '100%',
-        height: '100%'
+        height: '100%',
+        position: 'relative'
       }}>
         <div style={{
           fontWeight: 'inherit',
           wordBreak: 'break-word',
-          lineHeight: '1.3',
-          overflow: 'hidden'
+          lineHeight: isExpanded ? '1.4' : '1.3',
+          overflow: 'visible',
+          maxWidth: '100%',
+          textAlign: 'center'
         }}>
           {displayText}
-          {isLongText && (
-            <div style={{
-              fontSize: '11px',
-              opacity: 0.7,
-              marginTop: '4px',
-              fontStyle: 'italic'
-            }}>
-              {isExpanded ? 'Click to collapse' : 'Click to expand'}
-            </div>
-          )}
         </div>
+        
+        {/* Expansion indicator */}
+        {shouldTruncate && (
+          <div style={{
+            fontSize: '10px',
+            opacity: 0.8,
+            marginTop: isExpanded ? '8px' : '4px',
+            fontStyle: 'italic',
+            fontWeight: 'normal',
+            color: 'inherit'
+          }}>
+            {isExpanded ? '▲ Click to collapse' : '▼ Click to expand'}
+          </div>
+        )}
       </div>
      
-      {/* Enhanced depth indicator with better visibility */}
+      {/* Enhanced depth indicator */}
       {data.depth !== undefined && data.depth > 0 && (
         <div style={{
           position: 'absolute',
-          top: '-10px',
-          right: '-10px',
+          top: '-2px',
+          right: '-2px',
           background: 'linear-gradient(135deg, #1a365d 0%, #2d3748 100%)',
           color: 'white',
           borderRadius: '50%',
@@ -193,12 +248,12 @@ const CustomNode = ({ data, isConnectable }) => {
         </div>
       )}
      
-      {/* Enhanced connection handles with better visibility and positioning */}
+      {/* Connection handles */}
       <Handle
         type="target"
         position={Position.Top}
         style={{
-          background: 'black', // Black handles for arrows
+          background: 'black',
           border: '2px solid white',
           width: '10px',
           height: '10px',
@@ -212,7 +267,7 @@ const CustomNode = ({ data, isConnectable }) => {
         type="source"
         position={Position.Bottom}
         style={{
-          background: 'black', // Black handles for arrows
+          background: 'black',
           border: '2px solid white',
           width: '10px',
           height: '10px',
